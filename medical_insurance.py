@@ -1,5 +1,5 @@
 import csv
-
+import statistics as stat
 
 
 dict_list = []
@@ -7,118 +7,130 @@ with open("insurance.csv", newline= "") as insurance_data:
     insurance_dict = csv.DictReader(insurance_data) 
     for row in insurance_dict:
         dict_list.append(row)
+#returns dictionary of csv where id starting at 0 is key and value is dictionary of patient
+def general_dict():
+    id_dict = {}
+    for row in range(len(dict_list)):
+        id_dict[row] = dict_list[row]
+
+    return id_dict
+
+dict_by_id = general_dict()
+#print(dict_by_id)
+def individual_parameter_list(dict_by_id, var, datatype =str):
+    parameter_list = []
+    for id in dict_by_id:
+        parameter_list.append(datatype((dict_by_id[id][var])))
+    return parameter_list
 
 
+ages = individual_parameter_list(dict_by_id, "age", int)
+sexs = individual_parameter_list(dict_by_id, "sex")
+bmis = individual_parameter_list(dict_by_id, "age", float)
+childrens = individual_parameter_list(dict_by_id, "children", int)
+smokers = individual_parameter_list(dict_by_id, "smoker")
+regions = individual_parameter_list(dict_by_id, "region")
+charges = individual_parameter_list(dict_by_id, "charges", float)
 
-
-#new dictionary to append dictionary of each patient to a new id sarting at id = 0
-id_dict = {}
-for row in range(len(dict_list)):
-    id_dict[str(row)] = dict_list[row]
-
-#list of each idependant variable
-new_id = []
-ages = []
-sexs = []
-bmis = []
-childrens = []
-smokers = []
-regions = []
-charges = []
-new_id = list(id_dict.keys())
-
-
-
-for id in id_dict:
-    new_id.append
-    ages.append(int(id_dict[id]["age"]))
-    sexs.append(id_dict[id]["sex"])
-    bmis.append(float(id_dict[id]["bmi"]))
-    childrens.append(int(id_dict[id]["children"]))
-    smokers.append((id_dict[id]["smoker"]))
-    regions.append(id_dict[id]["region"])
-    charges.append(float(id_dict[id]["charges"]))
-
-def dict_converter(new_id, ages, sexs, bmis, childrens, smokers, regions, charges):
-    new_dict = {}
-    for i in range(len(new_id)):
-        new_dict[new_id[i]] = {"id": new_id[i],"age": ages[i], "sex": sexs[i], "bmi": bmis[i], "children": childrens[i], "smoker": smokers[i], "region": regions[i], "charges": charges[i]}
-    return new_dict
-
-id_dict2 = dict_converter(new_id, ages, sexs, bmis, childrens, smokers, regions, charges)
-#print(id_dict2)
-#general function to be used to calculate mean of float or integer lists
-def calc_mean(value_list):
-    total = 0
-    for value in value_list:
-        total += value
-    mean = total / len(value_list)
-    return mean
-#means of categories
-age_mean = round(calc_mean(ages), 0 )
-children_mean = round(calc_mean(childrens), 0)
-bmi_mean = round(calc_mean(bmis), 1)
-charges_mean = round(calc_mean(charges), 2)
-# print(age_mean)
+age_mean = round(stat.mean(ages), 0 )
+# children_mean = round(stat.mean(childrens), 0)
+# bmi_mean = round(stat.mean(bmis), 1)
+# charges_mean = round(stat.mean(charges), 2)
 # print(children_mean)
 # print(bmi_mean)
 # print(charges_mean)
 
-northeast = []
-for id in id_dict2:
-    if id_dict2[id]["region"] == "northeast":
-        northeast.append(id_dict2[id])
 
 
-
-
-
-def produce_dict(id_dict2, var_key):
+def produce_dict(dict_by_id, var_key):
     new_dict = {}
-    for person in id_dict2:
-        new_key = id_dict2[person][var_key]
-        new_value = id_dict2[person]
+    for person in dict_by_id:
+        new_key = dict_by_id[person][var_key]
+        new_value = dict_by_id[person]
         if new_key not in new_dict.keys():
             new_dict[new_key] = [new_value]
-        
         else:
             temp_list = new_dict[new_key]
             temp_list.append(new_value)
             new_dict[new_key] = temp_list
     return new_dict
 
-region_dict = produce_dict(id_dict2, "region")
-sex_dict = produce_dict(id_dict2, "sex")
+dict_by_region = produce_dict(dict_by_id, "region")
+dict_by_sex = produce_dict(dict_by_id, "sex")
+dict_by_smoker = produce_dict(dict_by_id, "smoker")
+dict_by_age = produce_dict(dict_by_id, "age")
+#Smokers Analysis 
+def percent_smoker():
+    num_smokers = len(dict_by_smoker["yes"])
+    num_non_smokers = len(dict_by_smoker["no"])
+    percent_smokers = (num_smokers / (num_non_smokers + num_smokers)) * 100
+    return round(percent_smokers, 1)
 
-#print(region_dict)
-print(sex_dict["male"])
+def smoker_charge():
+    smokers = dict_by_smoker["yes"]
+    non_smokers = dict_by_smoker["no"] 
+    smoker_charges = []
+    non_smoker_charges = []
+    for patient in smokers:
+        smoker_charges.append(float(patient["charges"]))
+    for patient in non_smokers:
+        non_smoker_charges.append(float(patient["charges"]))
+    return round(stat.mean(smoker_charges), 2), round(stat.mean(non_smoker_charges), 2)
 
-# region_dict = new_region_dict(id_dict)
+smokers_avg_charge, non_smoker_avg_charge = smoker_charge()
+difference_in_smoker_charge = smokers_avg_charge - non_smoker_avg_charge
 
-# def empty_region_dict(id_dict2):
-#     region_dict = {}
-#     north_east = []
-#     south_east = []
-#     north_west = []
-#     south_west = []
-#     for id in id_dict2:
-#         key = id_dict2[id]["region"]
-#         if key not in region_dict.keys():
-#              region_dict[key] = []
-#     for id in id_dict2:
-#         if id_dict2[id]["region"] == "northeast":
-#             north_east.append(id_dict[id])
-#         elif id_dict2[id]["region"] == "southeast":
-#             south_east.append(id_dict[id])
-#         elif id_dict2[id]["region"] == "northwest":
-#             north_west.append(id_dict[id])
-#         else:
-#             south_west.append(id_dict[id])
-#     region_dict["northeast"] = north_east
-#     region_dict["northwest"] = north_west
-#     region_dict["southeast"] = south_east
-#     region_dict["southwest"] = south_west
-#     return region_dict
+print(f"The average price of medical insurance is ${smokers_avg_charge} for a smoker and ${non_smoker_avg_charge} for a non-smoker. On average, a smoker will pay ${difference_in_smoker_charge} more than a non-smoker. {percent_smoker()}% of the patients smoke.")
 
-# print(empty_region_dict(id_dict)["northeast"])
+def percent_smoker_by_region(region):
+    region_smoker = 0
+    region_charge = []
+    region_non_smoker = 0
+    for patient in dict_by_region[region]:
+        if patient["smoker"] == "no":
+            region_non_smoker += 1
+            region_charge.append(float(patient["charges"]))
+        else:
+            region_smoker += 1
+            region_charge.append(float(patient["charges"]))
+    
+    per_smoker = 100 * (region_smoker / (region_smoker + region_non_smoker))
+    return round(per_smoker, 1), round(stat.mean(region_charge), 2)
 
+    
+
+# print(percent_smoker_by_region("northeast"))
+# print(percent_smoker_by_region("northwest"))
+# print(percent_smoker_by_region("southeast"))
+# print(percent_smoker_by_region("southwest"))
+
+#Region breakdown
+
+
+num_people_ne = len(dict_by_region["northeast"])
+num_people_nw = len(dict_by_region["northwest"])
+num_people_se = len(dict_by_region["southeast"])
+num_people_sw = len(dict_by_region["southwest"])
+
+#print(num_people_ne, num_people_nw, num_people_se, num_people_sw)
+
+
+#age and bmi
+
+def avg_bmi_for_age():
+    age_bmi_dict = {}
+    age_list = list(dict_by_age.keys())
+    
+    for age in sorted(age_list):
+        age_bmi_dict[int(age)] = []
+    
+    for age in dict_by_age:
+        bmi_temp_list = []
+        for patient in dict_by_age[age]:
+            bmi_temp_list.append(float(patient["bmi"]))
+        age_bmi_dict[int(age)] = round((stat.mean(bmi_temp_list)), 3)
+        
+    return age_bmi_dict
+
+
+print(avg_bmi_for_age())
